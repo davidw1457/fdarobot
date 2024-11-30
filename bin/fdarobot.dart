@@ -46,7 +46,8 @@ void main(List<String> arguments) async {
 Future<Map<String, Map>> _getRSSRecalls() async {
   print("_getRSSRecalls: getting recalls");
 
-  final uri = Uri.https('www.fda.gov', 'about-fda/contact-fda/stay-informed/rss-feeds/recalls/rss.xml');
+  final uri = Uri.https('www.fda.gov',
+      'about-fda/contact-fda/stay-informed/rss-feeds/recalls/rss.xml');
   final http.Response resp;
 
   print("_getRSSRecalls: executing GET");
@@ -127,7 +128,8 @@ bool _insertRecalls(Database db, Map<String, Map> recalls) {
   var newRecalls = false;
   for (final k in recalls.keys) {
     final String recallValue = _recallValue(k, recalls[k]!);
-    final String qryInsertRecall = qry.insertRecallTemplate.replaceAll('###VALUE###', recallValue);
+    final String qryInsertRecall =
+        qry.insertRecallTemplate.replaceAll('###VALUE###', recallValue);
     try {
       db.execute(qryInsertRecall);
     } on SqliteException catch (e) {
@@ -170,7 +172,7 @@ String _toFormattedDateString(String d) {
   var fields = d.split(' ');
   var year = fields[3];
   var month = _months[fields[2]];
-  var day = fields[1].padLeft(2,'0');
+  var day = fields[1].padLeft(2, '0');
   return '$year-$month-$day';
 }
 
@@ -183,7 +185,8 @@ Future<int> _postUpdates(Database db) async {
     final month = '${threshold.month}'.padLeft(2, '0');
     final day = '${threshold.day}'.padLeft(2, '0');
     final thresholdStr = '$year-$month-$day';
-    final qrySelectToPost = qry.selectToPost.replaceAll('###DATE###', thresholdStr);
+    final qrySelectToPost =
+        qry.selectToPost.replaceAll('###DATE###', thresholdStr);
     results = db.select(qrySelectToPost);
   } catch (e) {
     print('_postUpdates: $e');
@@ -220,8 +223,9 @@ Future<int> _postUpdates(Database db) async {
         }
 
         final facets = await s.entities.toFacets();
+        print('len: ${post.value.length} value: ${post.value}');
         final strongRef = await bskysesh.feed.post(
-            text: post.value,
+            text: s.value,
             reply: reply,
             facets: facets.map(bsky.Facet.fromJson).toList());
         titlerefs.add(strongRef.data);
@@ -245,7 +249,7 @@ WHERE
   Link = '$link';''';
   try {
     db.execute(updateQuery);
-  } on SqliteException catch(e) {
+  } on SqliteException catch (e) {
     print('_updateRecall: $e');
     print(updateQuery);
     rethrow;
@@ -257,7 +261,14 @@ bskytxt.BlueskyText _createPost(List<List<String>> titles, Row r) {
   for (final t in titles) {
     final field = t[0];
     final header = t[1];
-    final rawText = parser.parseFragment(r[field]).text;
+    String? rawText;
+    try {
+      rawText = parser.parseFragment(r[field]).text;
+    } catch (e) {
+      print(e);
+      print('field: $field');
+      print('fragment: ${r[field]}');
+    }
     if (rawText != null && rawText != '') {
       rawText.replaceAll('  ', ' ');
       rawText.replaceAll('\n\n', '\n');
@@ -292,8 +303,10 @@ const Map<String, String> _months = {
 const List<List<List<String>>> _postTitles = [
   [
     ['Title', ''],
+  ],
+  [
     ['Link', 'Link'],
-    ['PubDate', 'Date']
+    ['PubDate', 'Date'],
   ],
   [
     ['Descript', 'Description'],

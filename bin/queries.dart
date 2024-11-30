@@ -25,7 +25,8 @@ CREATE TABLE recalls (
 const selectToPost = '''SELECT
   Title,
   Link,
-  Descript
+  Descript,
+  PubDate
 FROM recalls
 WHERE
   uri IS NULL
